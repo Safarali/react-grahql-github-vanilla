@@ -1,21 +1,15 @@
 import React from 'react';
+import Repository from './Repository';
 
-const Organization = ({ organization, errors }) => {
+const Organization = ({ organization }) => {
     return (
-        <>
-            {errors ? (
-                <p>
-                    <strong>Something went wrong:</strong>
-                    {errors.map(error => error.message).join(' ')}
-                </p>
-            ): (
-                <p>
-                    <strong>Issues from Organization: </strong>
-                    <a href={organization.url}>{organization.name}</a>
-                </p>
-            )} 
-        </>
-         
+        <div>
+            <p>
+                <strong>Issues from Organization: </strong>
+                <a href={organization.url}>{organization.name}</a>
+            </p>
+            <Repository {...organization.repository}/>
+        </div>
     );
 };
 

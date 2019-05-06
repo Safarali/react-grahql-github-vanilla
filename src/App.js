@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Organization from './Organization';
-import { GET_ORGANIZATION } from './query';
+import Errors from './Errors';
+import  getIssuesOfRepositoryQuery from './query'
 
 const axiosGitHubGraphQL = axios.create({
     baseURL: 'https://api.github.com/graphql',
@@ -13,16 +14,19 @@ const axiosGitHubGraphQL = axios.create({
 
 const App = () => {
     const [path, setPath] = useState('the-road-to-learn-react/the-road-to-learn-react');
-    const [org, setOrg] = useState({});
+    const [org, setOrg] = useState();
     const [errors, setErrors] = useState(null);
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        fetchFromGitHub(path);
     };
 
-    const fetchFromGitHub = async () => {
+    const fetchFromGitHub = async (path) => {
+        const [organization, repository] = path.split("/");
         try {
-            const  { data } = await axiosGitHubGraphQL.post('', { query: GET_ORGANIZATION });
+            const  { data } = await axiosGitHubGraphQL.post('', { query: getIssuesOfRepositoryQuery(organization, repository)});
+            console.log(data)
             if(data.data) {
                 setOrg(data.data.organization)
             } else {
@@ -35,8 +39,8 @@ const App = () => {
 
     //componentDidMount
     useEffect(() => {
-        fetchFromGitHub();
-    }, [])
+        fetchFromGitHub(path);
+    },[])
 
     return (
         <>
@@ -55,9 +59,9 @@ const App = () => {
             </form>
             <hr/>
             {org ? (
-                <Organization organization={org} errors={errors}/>
+                <Organization organization={org}/>
             ): (
-                <p>No Information yet</p>
+                <p>{errors ? <Errors errors={errors}/> : 'No information yer'}</p>
             )}
             
         </>
