@@ -20,22 +20,22 @@ export const GET_ISSUES_OF_REPOSITORY = `
     }
 `;
 
-// const getIssuesOfRepositoryQuery = (organization, repository) => `{
-//     organization(login: "${organization}") {
-//         name
-//         url
-//         repository(name: "${repository}") {
-//             name
-//             url
-//             issues(last: 5) {
-//                 edges {
-//                     node {
-//                         id
-//                         title
-//                         url
-//                     }
-//                 }
-//             }
-//         }
-//     }
-// }`;
+const getIssuesOfRepositoryQuery = (organization, repository) => `{
+    organization(login: "${organization}") {
+        name
+        url
+        repository(name: "${repository}") {
+            name
+            url
+            issues(last: 5) {
+                edges {
+                    node {
+                        id
+                        title
+                        url
+                    }
+                }
+            }
+        }
+    }
+}`;
