@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Organization from './Organization';
 import Errors from './Errors';
-import  getIssuesOfRepositoryQuery from './query'
+import { GET_ISSUES_OF_REPOSITORY } from './query';
 
 const axiosGitHubGraphQL = axios.create({
     baseURL: 'https://api.github.com/graphql',
@@ -24,9 +24,17 @@ const App = () => {
 
     const fetchFromGitHub = async (path) => {
         const [organization, repository] = path.split("/");
+        const variables = { organization, repository };
+        const options = {
+            method: 'POST',
+            data: {
+                query: GET_ISSUES_OF_REPOSITORY,
+                variables
+            }
+        }
         try {
-            const  { data } = await axiosGitHubGraphQL.post('', { query: getIssuesOfRepositoryQuery(organization, repository)});
-            console.log(data)
+            const  { data } = await axiosGitHubGraphQL(options);
+            console.log(data) 
             if(data.data) {
                 setOrg(data.data.organization)
             } else {
@@ -40,6 +48,7 @@ const App = () => {
     //componentDidMount
     useEffect(() => {
         fetchFromGitHub(path);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     },[])
 
     return (
