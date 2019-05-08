@@ -11,6 +11,28 @@ const axiosGitHubGraphQL = axios.create({
     }
 });
 
+const resolveIssuesQuery = (queryResult, cursor) => org => {
+    const { organization: fetchedData } = queryResult.data; 
+    if (!cursor) {
+        return fetchedData;
+    }
+
+    const { edges: oldIssues } = org.repository.issues;
+    const { edges: newIssues } = fetchedData.repository.issues;
+    const updatedIssues = [...oldIssues, ...newIssues];
+
+    return {
+        ...fetchedData,
+        repository: {
+            ...fetchedData.repository,
+            issues: {
+                ...fetchedData.repository.issues,
+                edges: updatedIssues
+            }
+        }
+    }
+};
+
 
 const App = () => {
     const [path, setPath] = useState('the-road-to-learn-react/the-road-to-learn-react');
@@ -22,9 +44,9 @@ const App = () => {
         fetchFromGitHub(path);
     };
 
-    const fetchFromGitHub = async (path) => {
+    const fetchFromGitHub = async (path, cursor) => {
         const [organization, repository] = path.split("/");
-        const variables = { organization, repository };
+        const variables = { organization, repository, cursor };
         const options = {
             method: 'POST',
             data: {
@@ -36,14 +58,19 @@ const App = () => {
             const  { data } = await axiosGitHubGraphQL(options);
             console.log(data) 
             if(data.data) {
-                setOrg(data.data.organization)
+                setOrg(resolveIssuesQuery(data, cursor))
             } else {
                 setErrors(data.errors);
             }
         } catch(e) {
             console.log(e)
         }
-    }
+    };
+
+    const onFetchMoreIssues = () => {
+        const { endCursor } = org.repository.issues.pageInfo;
+        fetchFromGitHub(path, endCursor);
+    };
 
     //componentDidMount
     useEffect(() => {
@@ -68,7 +95,10 @@ const App = () => {
             </form>
             <hr/>
             {org ? (
-                <Organization organization={org}/>
+                <Organization 
+                    organization={org} 
+                    onFetchMoreIssues={onFetchMoreIssues}
+                />
             ): (
                 <p>{errors ? <Errors errors={errors}/> : 'No information yer'}</p>
             )}

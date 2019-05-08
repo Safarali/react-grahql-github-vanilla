@@ -1,7 +1,7 @@
 import React from 'react';
 import Issues from './Issues';
 
-const Repository = ({ name, url, issues }) => {
+const Repository = ({ name, url, issues, onFetchMoreIssues }) => {
     return (
         <div>
             <p>
@@ -9,6 +9,10 @@ const Repository = ({ name, url, issues }) => {
                 <a href={url}>{name}</a>
             </p>
             <Issues {...issues}/>
+            <hr/>
+            {issues.pageInfo.hasNextPage && (
+                <button onClick={onFetchMoreIssues}>More</button>
+            )}
         </div>
     )
 };
