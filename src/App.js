@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Organization from './Organization';
 import Errors from './Errors';
-import { GET_ISSUES_OF_REPOSITORY } from './query';
+import Form from  './Form';
+import { GET_ISSUES_OF_REPOSITORY, ADD_STAR, REMOVE_STAR } from './graphql';
+import { resolveIssuesQuery, resolveStarMutation, createOption } from './utilities';
 
 const axiosGitHubGraphQL = axios.create({
     baseURL: 'https://api.github.com/graphql',
@@ -11,27 +13,9 @@ const axiosGitHubGraphQL = axios.create({
     }
 });
 
-const resolveIssuesQuery = (queryResult, cursor) => org => {
-    const { organization: fetchedData } = queryResult.data; 
-    if (!cursor) {
-        return fetchedData;
-    }
 
-    const { edges: oldIssues } = org.repository.issues;
-    const { edges: newIssues } = fetchedData.repository.issues;
-    const updatedIssues = [...oldIssues, ...newIssues];
 
-    return {
-        ...fetchedData,
-        repository: {
-            ...fetchedData.repository,
-            issues: {
-                ...fetchedData.repository.issues,
-                edges: updatedIssues
-            }
-        }
-    }
-};
+
 
 
 const App = () => {
@@ -67,9 +51,35 @@ const App = () => {
         }
     };
 
+    const addStarToRepository = async repositoryId => {
+        const options = createOption(ADD_STAR, repositoryId);
+        const { data } = await axiosGitHubGraphQL(options);
+        setOrg(resolveStarMutation(data, 'addStar'));
+
+    };
+
+    const removeStarFromRepository = async repositoryId => {
+        const options = createOption(REMOVE_STAR, repositoryId)
+        const { data } = await axiosGitHubGraphQL(options);
+        setOrg(resolveStarMutation(data, 'removeStar'));
+    };
+
+  
     const onFetchMoreIssues = () => {
         const { endCursor } = org.repository.issues.pageInfo;
         fetchFromGitHub(path, endCursor);
+    };
+
+    const onStarRepository = (repositoryId, viewerHasStarred) => {
+        if (!viewerHasStarred) {
+            addStarToRepository(repositoryId);
+        } else {
+            removeStarFromRepository(repositoryId);
+        }
+    }
+
+    const handleOnChange = e => {
+        setPath(e.target.value);
     };
 
     //componentDidMount
@@ -80,29 +90,21 @@ const App = () => {
 
     return (
         <>
-            <form onSubmit={handleSubmit}>
-                <label htmlFor="url">
-                    Show open issues for https://github.com
-                </label>
-                <input 
-                    id="url"
-                    type="text"
-                    onChange={(e) => setPath(e.target.value)}
-                    value={path}
-                    className="form__input"
-                />
-                <button type="submit">Search</button>
-            </form>
+            <Form
+                handleSubmit={handleSubmit}
+                handleOnChange={handleOnChange}
+                path={path}
+            />
             <hr/>
             {org ? (
                 <Organization 
                     organization={org} 
                     onFetchMoreIssues={onFetchMoreIssues}
+                    onStarRepository={onStarRepository}
                 />
             ): (
-                <p>{errors ? <Errors errors={errors}/> : 'No information yer'}</p>
+                <p>{errors ? <Errors errors={errors}/> : 'No information yet'}</p>
             )}
-            
         </>
     );
 }

@@ -1,7 +1,7 @@
 import React from 'react';
 import Repository from './Repository';
 
-const Organization = ({ organization, onFetchMoreIssues }) => {
+const Organization = ({ organization, onFetchMoreIssues, onStarRepository }) => {
     return (
         <div>
             <p>
@@ -11,6 +11,7 @@ const Organization = ({ organization, onFetchMoreIssues }) => {
             <Repository 
                 {...organization.repository } 
                 onFetchMoreIssues={onFetchMoreIssues}
+                onStarRepository={onStarRepository}
             />
         </div>
     );
